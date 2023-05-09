@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace onlineshop.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi =true)]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {

@@ -33,6 +33,8 @@ internal class Program
 
         app.UseStaticFiles();
 
+        app.UseCors("CorsPolicy");
+
         app.UseAuthorization();
 
         app.MapControllers();

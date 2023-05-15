@@ -5,6 +5,7 @@ using Core.Specifications;
 using Microsoft.AspNetCore.Mvc;
 using onlineshop.Dtos;
 using onlineshop.Errors;
+using onlineshop.Helpers;
 
 namespace onlineshop.Controllers
 {
@@ -27,13 +28,21 @@ namespace onlineshop.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts()
+        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts(
+            [FromQuery]ProductSpecParams productParams)
         {
-            var spec = new ProductsWithTypeAndBrandsSpecification();
+            var spec = new ProductsWithTypeAndBrandsSpecification(productParams);
+
+            var CountSpec=new ProductsWithFiltersForSpecification(productParams);
+
+            var totalItems = await _ProductsRepo.CountAsync(CountSpec);
 
             var products = await _ProductsRepo.ListAsync(spec);
 
-            return Ok(_mapper.Map<IReadOnlyList<Product>,IReadOnlyList<ProductToReturnDto>>(products));
+            var Data = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products);
+                      
+            return Ok(new Pagination<ProductToReturnDto>(productParams.PageIndex,
+                productParams.PageSize,totalItems,Data));
         }
 
         [HttpGet("{id}")]

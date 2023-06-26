@@ -1,4 +1,8 @@
+using Core.Entities.Identity;
 using Infrastructure.Data;
+using Infrastructure.Data.Identity;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using onlineshop.Extensions;
 using onlineshop.Middleware;
@@ -13,6 +17,7 @@ internal class Program
 
         builder.Services.AddControllers();
         builder.Services.AddApplicaitonServices(builder.Configuration);
+        builder.Services.AddIdentityService(builder.Configuration);
 
         var app = builder.Build();
 
@@ -35,6 +40,7 @@ internal class Program
 
         app.UseCors("CorsPolicy");
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
@@ -42,12 +48,17 @@ internal class Program
         using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
         var context = services.GetRequiredService<StoreContext>();
+        var identityContext = services.GetRequiredService<AppIdentityDbContext>();
+        var userManager = services.GetRequiredService<UserManager<AppUser>>();
         var logger = services.GetRequiredService<ILogger<Program>>();
 
         try
         {
             await context.Database.MigrateAsync();
+            await identityContext.Database.MigrateAsync();
             await StoreContextSeed.SeedAsync(context);
+            await AppIdentityDbContextSeed.SeedUserAsync(userManager);
+
         }
         catch (Exception ex)
         {

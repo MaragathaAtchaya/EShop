@@ -1,7 +1,9 @@
-﻿using Core.Entities;
+﻿using AutoMapper;
+using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
+using onlineshop.Dtos;
 using StackExchange.Redis;
 
 namespace onlineshop.Controllers
@@ -9,9 +11,12 @@ namespace onlineshop.Controllers
     public class BasketController : BaseOnlineShopController
     {
         private readonly IBasketRepository _basketRepository;
-        public BasketController(IBasketRepository basketRepository)
+        private readonly IMapper _mapper;
+
+        public BasketController(IBasketRepository basketRepository, IMapper mapper)
         {
             _basketRepository= basketRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -23,9 +28,11 @@ namespace onlineshop.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CustomerBasket>> UpdateBasket(CustomerBasket basket)
+        public async Task<ActionResult<CustomerBasket>> UpdateBasket(CustomerBasketDto basket)
         {
-            var updatedBasket= await _basketRepository.UpdateBasketAsync(basket);
+            var customerBasket = _mapper.Map<CustomerBasketDto, CustomerBasket>(basket);
+
+            var updatedBasket= await _basketRepository.UpdateBasketAsync(customerBasket);
 
             return Ok(updatedBasket);
         }
